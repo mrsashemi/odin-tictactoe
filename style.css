@@ -1,0 +1,39 @@
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.gameBoard {
+    width: fit-content;
+    height: fit-content;
+    display: grid;
+    grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+}
+
+.ticTacSquare {
+    height: 10vmin;
+    width: 10vmin;
+    margin: 0;
+    padding: 0;
+    font-size: 8vmin;
+    border: 0.25vmin solid black;
+    text-align: center;
+    color: transparent;
+}
+
+button {
+    width: 30vmin;
+}
