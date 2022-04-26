@@ -41,14 +41,14 @@ const gameBoard = (function() {
     // use event delegation to add X or O to tic tac toe grid
     function addTicTacValue(e) {
         const target = e.target;
-        
+
         if(target.matches('div')) {
             gameBoard[target.textContent].val = symbol;
             target.textContent = symbol;
             target.style.color = 'black';
         }
         ticTacToe.findWinner();
-        ticTacToe.drawGame();
+        ticTacToe.showResult();
         return (symbol == 'X') ? changeSymbol('O') : changeSymbol('X');
     }
 
@@ -59,10 +59,11 @@ const gameBoard = (function() {
 
 
 // Use a factory function to create player 1 and 2 objects
-const players = function(user, marker, result) {
+const players = function(user, marker, turn, result) {
     return {
         user,
         marker,
+        turn,
         result
     }
 }
@@ -85,55 +86,94 @@ const ticTacToe = (function() {
 
     // cache dom
     let ticTacSquare = document.querySelectorAll('.ticTacSquare')
+    let board = document.querySelector('.gameBoard');
     let buttons = document.querySelector('.buttons')
     let xButton = document.querySelector('.xButton')
     let oButton = document.querySelector('.oButton')
+    let showTurn = document.querySelector('.turn')
+    let results = document.querySelector('.results')
+
+    // create an array from the dynamically created ticTacSquares
+    let xoArray = [...ticTacSquare];
 
     // bind event listener to buttons
     xButton.addEventListener('click', symbolXSelect);
     oButton.addEventListener('click', symbolOSelect);
+    board.addEventListener('click', turnCount);
 
     // Depending on which button is selected, assign player 1 and 2 to a player array
     let player = [];
 
     function symbolXSelect() { 
        buttons.style.display = 'none'
+       board.style["pointer-events"] = 'all'
        gameBoard.changeSymbol('X')
-       let p = [players("P1", "X", ""), players("P2", "O", "")]
+       // Set player turn to the turn of their next move
+       let p = [players("P1", "X", 1, ""), players("P2", "O", 2, "")]
        player.push(...p);
     }
 
     function symbolOSelect() {
         buttons.style.display = 'none'
+        board.style["pointer-events"] = 'all'
         gameBoard.changeSymbol('O')
-        let p = [players("P1", "O", ""), players("P2", "X", "")]
+        // Set player turn to the turn of their next move
+        let p = [players("P1", "O", 1, ""), players("P2", "X", 2, "")]
        player.push(...p);
     }
 
-    // create an array from the dynamically created ticTacSquares
-    let xoArray = [...ticTacSquare];
+    // Set player turn using event delegation
+    function turnCount(e) {
+        const target = e.target;
+        // Player turn is set to the turn count of their next move, subtract by 1 to find the current turn
+        if(target.matches('div') && target.textContent == player[0].marker ) {
+            player[0].turn += 2
+            showTurn.textContent = player[0].turn - 1
+        } else if(target.matches('div') && target.textContent == player[1].marker ) {
+            player[1].turn += 2
+            showTurn.textContent = player[1].turn - 1
+        }
+    }
+
+
+    // Create an AI if P2 is set to CPU
+    let cpuMoveCount = [];
+
+    function cpuMove() {
+        for (let i = 0; i <= 8; i++) {
+            let tile = xoArray[i].textContent;
+            if (tile == "") {
+                cpuMoveCount.push(i)
+            }
+        }
+    }
+
+    cpuMove();
 
     // iterate through the winning combinations array and compare against the xoArray to find the winner
     function findWinner() {
         ticTacToe.forEach(win => {
             if (xoArray[win[0]].textContent == player[0].marker && xoArray[win[1]].textContent == player[0].marker && xoArray[win[2]].textContent == player[0].marker) {
-                console.log("player 1 wins")
                 player[0].result = "winner"
+                showResult();
             } else if (xoArray[win[0]].textContent == player[1].marker && xoArray[win[1]].textContent == player[1].marker && xoArray[win[2]].textContent == player[1].marker) {
-                console.log("player 2 wins")
                 player[1].result = "winner"
+                showResult();
             }
         })
     }
 
-    // use another function in the case of a draw
-    function drawGame() {
-        xoArray.every(e => {
-            return (e.style.color == 'black') ? console.log("draw") : console.log("oops");
-        })
+    // display results
+    function showResult() {
+        if (player[0].result == "winner") {
+            results.textContent = "P1 Wins!"
+        } else if (player[1].result == "winner") {
+            results.textContent = "P2 Wins!"
+        } else if (player[1].turn == 10 && (player[0].result != "winner" && player[1].result != "winner")) {
+            results.textContent = "It's a Draw!"
+        }
     }
 
-
     // reveal 
-    return {findWinner, drawGame, xoArray}
+    return {findWinner, showResult, cpuMoveCount}
 })();
