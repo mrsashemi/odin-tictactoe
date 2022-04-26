@@ -1,5 +1,6 @@
-// Use a revealing module pattern to create the gameboard
+// Use a revealing module pattern to create the gameboard, X 0 Symbols, and a CPU
 const gameBoard = (function() {
+
     // create an array to represent the 3x3 grid
     const gameBoard = [
             {id: 0, val: ""},
@@ -17,7 +18,7 @@ const gameBoard = (function() {
     board = document.querySelector('.gameBoard');
 
     // render tictactoe square divs from array and append to gameboard container
-    function render() {
+    function _render() {
         gameBoard.forEach(e => {
             const ticTacSquare = document.createElement('div');
             ticTacSquare.className = `ticTacSquare square${e.id}`;
@@ -26,10 +27,10 @@ const gameBoard = (function() {
         })
     }
 
-    render();
+    _render();
     
     // bind event listener to container
-    board.addEventListener('click', addTicTacValue);
+    board.addEventListener('click', _addTicTacValue);
 
     // declare a symbol(X or O) and a function to modify the symbol
     let symbol = '';
@@ -39,21 +40,43 @@ const gameBoard = (function() {
     }
     
     // use event delegation to add X or O to tic tac toe grid
-    function addTicTacValue(e) {
+    function _addTicTacValue(e) {
         const target = e.target;
 
         if(target.matches('div')) {
             gameBoard[target.textContent].val = symbol;
             target.textContent = symbol;
             target.style.color = 'black';
+            target.style["pointer-events"] = 'none'
         }
+        nextTurn();
         ticTacToe.findWinner();
         ticTacToe.showResult();
         return (symbol == 'X') ? changeSymbol('O') : changeSymbol('X');
     }
 
+    // CPU Move
+    function nextTurn() {
+        let available = [];
+
+        // use a for loop to generate the available spaces 
+        for (let i = 0; i < 9; i++) {
+            if (gameBoard[i].val == '') {
+                available.push({id: i, val: ''})
+            }
+        }
+
+        // based on availability, cpu will randomly place an X or O
+        (symbol == 'X') ? changeSymbol('O') : changeSymbol('X');
+        let rando = Math.floor(Math.random()*available.length);
+        available[rando].val = symbol;
+        gameBoard[available[rando].id].val = symbol;
+        document.querySelector(`.square${available[rando].id}`).textContent = symbol;
+        document.querySelector(`.square${available[rando].id}`).style.color = 'black';
+    }
+
     // reveal
-    return {changeSymbol}
+    return {changeSymbol, nextTurn}
 })();
 
 
@@ -72,6 +95,7 @@ const players = function(user, marker, turn, result) {
 
 // Use another module to control the game
 const ticTacToe = (function() {
+
     // create an array containing winning combinations
     const ticTacToe = [
         [0, 1, 2],
@@ -97,34 +121,37 @@ const ticTacToe = (function() {
     let xoArray = [...ticTacSquare];
 
     // bind event listener to buttons
-    xButton.addEventListener('click', symbolXSelect);
-    oButton.addEventListener('click', symbolOSelect);
-    board.addEventListener('click', turnCount);
+    xButton.addEventListener('click', _symbolXSelect);
+    oButton.addEventListener('click', _symbolOSelect);
+    board.addEventListener('click', _turnCount);
 
     // Depending on which button is selected, assign player 1 and 2 to a player array
     let player = [];
 
-    function symbolXSelect() { 
+    function _symbolXSelect() { 
        buttons.style.display = 'none'
        board.style["pointer-events"] = 'all'
        gameBoard.changeSymbol('X')
-       // Set player turn to the turn of their next move
+
+       // Create player object ad set to the turn of their next move
        let p = [players("P1", "X", 1, ""), players("P2", "O", 2, "")]
        player.push(...p);
     }
 
-    function symbolOSelect() {
+    function _symbolOSelect() {
         buttons.style.display = 'none'
         board.style["pointer-events"] = 'all'
         gameBoard.changeSymbol('O')
-        // Set player turn to the turn of their next move
+
+        // Create player object ad set to the turn of their next move
         let p = [players("P1", "O", 1, ""), players("P2", "X", 2, "")]
-       player.push(...p);
+        player.push(...p);
     }
 
     // Set player turn using event delegation
-    function turnCount(e) {
+    function _turnCount(e) {
         const target = e.target;
+
         // Player turn is set to the turn count of their next move, subtract by 1 to find the current turn
         if(target.matches('div') && target.textContent == player[0].marker ) {
             player[0].turn += 2
@@ -135,22 +162,7 @@ const ticTacToe = (function() {
         }
     }
 
-
-    // Create an AI if P2 is set to CPU
-    let cpuMoveCount = [];
-
-    function cpuMove() {
-        for (let i = 0; i <= 8; i++) {
-            let tile = xoArray[i].textContent;
-            if (tile == "") {
-                cpuMoveCount.push(i)
-            }
-        }
-    }
-
-    cpuMove();
-
-    // iterate through the winning combinations array and compare against the xoArray to find the winner
+    // Iterate through the winning combinations array and compare against the xoArray to find the winner
     function findWinner() {
         ticTacToe.forEach(win => {
             if (xoArray[win[0]].textContent == player[0].marker && xoArray[win[1]].textContent == player[0].marker && xoArray[win[2]].textContent == player[0].marker) {
@@ -175,5 +187,5 @@ const ticTacToe = (function() {
     }
 
     // reveal 
-    return {findWinner, showResult, cpuMoveCount}
+    return {findWinner, showResult, player}
 })();
