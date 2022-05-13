@@ -3,93 +3,175 @@ const gameBoard = (function() {
 
     // create an array to represent the 3x3 grid
     const gameBoard = [
-            {id: 0, val: ""},
-            {id: 1, val: ""},
-            {id: 2, val: ""},
-            {id: 3, val: ""},
-            {id: 4, val: ""},
-            {id: 5, val: ""},
-            {id: 6, val: ""},
-            {id: 7, val: ""},
-            {id: 8, val: ""},
-        ]
+        '', '', '',
+        '', '', '',
+        '', '', ''
+        ];
     
     // cache the dom and select the gameboard container
     board = document.querySelector('.gameBoard');
+    
 
     // render tictactoe square divs from array and append to gameboard container
     function _render() {
+        let i = 0; 
+
         gameBoard.forEach(e => {
             const ticTacSquare = document.createElement('div');
-            ticTacSquare.className = `ticTacSquare square${e.id}`;
+            ticTacSquare.className = `ticTacSquare square${i}`;
             this.board.appendChild(ticTacSquare);
-            ticTacSquare.textContent = e.id;
-        })
-    }
+            ticTacSquare.textContent = i;
+            i++;
+        });
+    };
 
     _render();
     
     // bind event listener to container
     board.addEventListener('click', _addTicTacValue);
 
-    // declare a symbol(X or O) and a function to modify the symbol
-    let symbol = '';
+    //
+    function nextMove() {
+        let rando = Math.floor(Math.random()*10);
 
-    function changeSymbol(val) {
-        return symbol = val;
+        if (rando < 7) {
+            ai.bestMove(gameBoard)
+        } else {
+            ai.nextTurn(gameBoard)
+        }
     }
     
     // use event delegation to add X or O to tic tac toe grid
     function _addTicTacValue(e) {
         const target = e.target;
 
-        if(target.matches('div')) {
-            gameBoard[target.textContent].val = symbol;
-            target.textContent = symbol;
+        if(target.matches('div') && gameBoard[target.textContent] == '') {
+            gameBoard[target.textContent] = ticTacToe.player[0].marker;
+            target.textContent = ticTacToe.player[0].marker;
             target.style.color = 'black';
-            target.style["pointer-events"] = 'none'
+
+
+            let result = ticTacToe.findWinner(gameBoard);
+            ticTacToe.showResult(result);
+            //ai.nextTurn(gameBoard);
         }
-        nextTurn();
-        ticTacToe.findWinner();
-        ticTacToe.showResult();
-        return (symbol == 'X') ? changeSymbol('O') : changeSymbol('X');
     }
-
-    // CPU Move
-    function nextTurn() {
-        let available = [];
-
-        // use a for loop to generate the available spaces 
-        for (let i = 0; i < 9; i++) {
-            if (gameBoard[i].val == '') {
-                available.push({id: i, val: ''})
-            }
-        }
-
-        // based on availability, cpu will randomly place an X or O
-        (symbol == 'X') ? changeSymbol('O') : changeSymbol('X');
-        let rando = Math.floor(Math.random()*available.length);
-        available[rando].val = symbol;
-        gameBoard[available[rando].id].val = symbol;
-        document.querySelector(`.square${available[rando].id}`).textContent = symbol;
-        document.querySelector(`.square${available[rando].id}`).style.color = 'black';
-    }
-
-    // reveal
-    return {changeSymbol, nextTurn}
 })();
 
 
 
 // Use a factory function to create player 1 and 2 objects
-const players = function(user, marker, turn, result) {
+const players = function(user, marker) {
     return {
         user,
-        marker,
-        turn,
-        result
+        marker
+    };
+};
+
+
+
+// Use a module to control the AI
+const ai = (function() {
+     
+    // Use the minimax algorithm to find the optimal move. Start by creating a function that selects the optimal move
+     function bestMove(board) {
+        let bestScore = -Infinity;
+        let move;
+
+        for (let i = 0; i < 9; i++) {
+            // Check to see if a board space is open and call minimax to find the best score
+            if (board[i] == '') {
+                board[i] = ticTacToe.player[1].marker;
+                let score = minimax(board, 0, false);
+                board[i] = '';
+                if (score > bestScore) {
+                    bestScore = score;
+                    move = i;
+                };
+            };
+        };
+        // Set ai marker
+        let boardSpace = document.querySelector(`.square${move}`)
+
+        board[move] = ticTacToe.player[1].marker;
+        boardSpace.textContent = ticTacToe.player[1].marker;
+        boardSpace.style.color = 'black';
     }
-}
+
+    // Base scoring off whether P1 selects X or O. Since the ai is maximizing, it will always have the positive score
+    let scores;
+
+    function setScores() {
+        if (ticTacToe.player[0].marker == 'X') {
+            scores = {'X': -10, 'O': 10, 'tie': 0}
+        } else {
+            scores = {'X': 10, 'O': -10, 'tie': 0}
+        }
+    }
+    
+    // Create minimax function
+    function minimax(boardPos, depth, isMaximizing) {
+        setScores();
+
+        // find winning gameBoard set up for terminal condition
+        let result = ticTacToe.findWinner(boardPos);
+        if (result !== undefined) {
+            return scores[result];
+        }
+
+        // Check all possible spots for both maximizing and minimizing players
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                // check if space is open
+                if (boardPos[i] == '') {
+                    boardPos[i] = ticTacToe.player[1].marker;
+                    let score = minimax(boardPos, depth + 1, false);
+                    boardPos[i] = ''
+                    bestScore = Math.max(score,bestScore);
+                };
+            };
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                // check if space is open
+                if (boardPos[i] == '') {
+                    boardPos[i] = ticTacToe.player[0].marker;
+                    let score = minimax(boardPos, depth + 1, true);
+                    boardPos[i] = '';
+                    bestScore = Math.min(score,bestScore);
+                };
+            };
+            return bestScore;
+        }
+    }
+
+    // Use a random move generator to create an easy OR different difficulties
+    function nextTurn(board) {
+        let available = [];
+
+        // use a for loop to generate the available spaces 
+        for (let i = 0; i < 9; i++) {
+            if (board[i] == '') {
+                available.push(i);
+            };
+        };
+
+        // based on availability, cpu will randomly place an X or O
+        let rando = Math.floor(Math.random()*available.length);
+        let boardSpace = document.querySelector(`.square${available[rando]}`);
+
+        if (available.length > 0) {
+            board[available[rando]] = ticTacToe.player[1].marker;
+            boardSpace.textContent = ticTacToe.player[1].marker;
+            boardSpace.style.color = 'black';
+        }
+    }; 
+
+    // reveal
+    return {bestMove, nextTurn}
+})();
 
 
 
@@ -106,86 +188,74 @@ const ticTacToe = (function() {
         [2, 5, 8],
         [0, 4, 8],
         [2, 4, 6]
-    ]
+    ];
 
     // cache dom
-    let ticTacSquare = document.querySelectorAll('.ticTacSquare')
     let board = document.querySelector('.gameBoard');
-    let buttons = document.querySelector('.buttons')
-    let xButton = document.querySelector('.xButton')
-    let oButton = document.querySelector('.oButton')
-    let showTurn = document.querySelector('.turn')
-    let results = document.querySelector('.results')
-
-    // create an array from the dynamically created ticTacSquares
-    let xoArray = [...ticTacSquare];
+    let buttons = document.querySelector('.buttons');
+    let xButton = document.querySelector('.xButton');
+    let oButton = document.querySelector('.oButton');
+    let results = document.querySelector('.results');
 
     // bind event listener to buttons
     xButton.addEventListener('click', _symbolXSelect);
     oButton.addEventListener('click', _symbolOSelect);
-    board.addEventListener('click', _turnCount);
 
     // Depending on which button is selected, assign player 1 and 2 to a player array
     let player = [];
 
     function _symbolXSelect() { 
-       buttons.style.display = 'none'
-       board.style["pointer-events"] = 'all'
-       gameBoard.changeSymbol('X')
+       buttons.style.display = 'none';
+       board.style["pointer-events"] = 'all';
 
        // Create player object ad set to the turn of their next move
-       let p = [players("P1", "X", 1, ""), players("P2", "O", 2, "")]
+       let p = [players("P1", "X", 1), players("P2", "O")];
        player.push(...p);
-    }
+    };
 
     function _symbolOSelect() {
-        buttons.style.display = 'none'
-        board.style["pointer-events"] = 'all'
-        gameBoard.changeSymbol('O')
+        buttons.style.display = 'none';
+        board.style["pointer-events"] = 'all';
 
         // Create player object ad set to the turn of their next move
-        let p = [players("P1", "O", 1, ""), players("P2", "X", 2, "")]
+        let p = [players("P1", "O", 1), players("P2", "X")];
         player.push(...p);
-    }
-
-    // Set player turn using event delegation
-    function _turnCount(e) {
-        const target = e.target;
-
-        // Player turn is set to the turn count of their next move, subtract by 1 to find the current turn
-        if(target.matches('div') && target.textContent == player[0].marker ) {
-            player[0].turn += 2
-            showTurn.textContent = player[0].turn - 1
-        } else if(target.matches('div') && target.textContent == player[1].marker ) {
-            player[1].turn += 2
-            showTurn.textContent = player[1].turn - 1
-        }
-    }
+    };
 
     // Iterate through the winning combinations array and compare against the xoArray to find the winner
-    function findWinner() {
-        ticTacToe.forEach(win => {
-            if (xoArray[win[0]].textContent == player[0].marker && xoArray[win[1]].textContent == player[0].marker && xoArray[win[2]].textContent == player[0].marker) {
-                player[0].result = "winner"
-                showResult();
-            } else if (xoArray[win[0]].textContent == player[1].marker && xoArray[win[1]].textContent == player[1].marker && xoArray[win[2]].textContent == player[1].marker) {
-                player[1].result = "winner"
-                showResult();
-            }
+    function findWinner(arr) {
+        let winner;
+
+        // check to see if all spaces are filled for a draw
+        let drawCheck = arr.every(e => {
+            return (e == 'X' || e == 'O');
         })
-    }
+
+        ticTacToe.forEach(win => {
+            if (arr[win[0]] == player[0].marker && arr[win[1]] == player[0].marker && arr[win[2]] == player[0].marker) {
+                winner = player[0].marker;
+            } else if (arr[win[0]] == player[1].marker && arr[win[1]] == player[1].marker && arr[win[2]] == player[1].marker) {
+                winner = player[1].marker;
+            } else if (drawCheck && winner != player[0].marker && winner != player[1].marker) {
+                winner = 'tie';
+            }
+        });
+
+        return winner;
+    };
+
 
     // display results
-    function showResult() {
-        if (player[0].result == "winner") {
-            results.textContent = "P1 Wins!"
-        } else if (player[1].result == "winner") {
-            results.textContent = "P2 Wins!"
-        } else if (player[1].turn == 10 && (player[0].result != "winner" && player[1].result != "winner")) {
-            results.textContent = "It's a Draw!"
-        }
-    }
+    function showResult(result) {
+        if (result === player[0].marker) {
+            results.textContent = "P1 Wins!";
+        } else if (result === player[1].marker) {
+            results.textContent = "P2 Wins!";
+        } else if (result === 'tie') {
+            results.textContent = "It's a Draw!";
+        };
+    };
 
     // reveal 
-    return {findWinner, showResult, player}
+    return {findWinner, showResult, player};
 })();
