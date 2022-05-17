@@ -23,7 +23,6 @@ body {
 
 .container {
     position: absolute;
-    font-family: 'Courier New', Courier, monospace;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -53,6 +52,7 @@ body {
 }
 
 .ticTacSquare {
+    font-family: '8bit', 'Courier New', Courier, monospace;
     position: relative;
     background: rgb(245, 245, 220, 0.5);
     border-radius: 1vmin;
