@@ -101,6 +101,7 @@ const gameBoard = (function() {
         modeSelect.style.display = 'block';
         difficultySelect.style.display = 'none';
         markerSelect.style.display = 'none';
+        board.style["pointer-events"] = 'none';
         results.textContent = '';
 
         _render();
