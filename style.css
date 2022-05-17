@@ -38,3 +38,11 @@ body {
 button {
     width: 30vmin;
 }
+
+.markerSelect {
+    display: none;
+}
+
+.difficultySelect {
+    display: none;
+}

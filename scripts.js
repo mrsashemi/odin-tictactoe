@@ -1,18 +1,20 @@
-// Use a revealing module pattern to create the gameboard, X 0 Symbols, and a CPU
+  ////////////////////////////////////////////////////////////
+ // Use a revealing module pattern to create the gameboard //
+////////////////////////////////////////////////////////////
 const gameBoard = (function() {
 
-    // create an array to represent the 3x3 grid
+    //// create an array to represent the 3x3 grid ////
     const gameBoard = [
         '', '', '',
         '', '', '',
         '', '', ''
         ];
     
-    // cache the dom and select the gameboard container
+    //// cache the dom and select the gameboard container ////
     board = document.querySelector('.gameBoard');
     
 
-    // render tictactoe square divs from array and append to gameboard container
+    //// render tictactoe square divs from array and append to gameboard container ////
     function _render() {
         let i = 0; 
 
@@ -27,56 +29,64 @@ const gameBoard = (function() {
 
     _render();
     
-    // bind event listener to container
+    //// bind event listener to container ////
     board.addEventListener('click', _addTicTacValue);
-
-    //
-    function nextMove() {
-        let rando = Math.floor(Math.random()*10);
-
-        if (rando < 7) {
-            ai.bestMove(gameBoard)
-        } else {
-            ai.nextTurn(gameBoard)
-        }
-    }
     
-    // use event delegation to add X or O to tic tac toe grid
+    //// create a function to set the marker initially ////
+    let marker;
+
+    function setMarker() {
+        marker = ticTacToe.player[0].marker;
+    }
+
+    //// use event delegation to add X or O to tic tac toe grid ////
     function _addTicTacValue(e) {
         const target = e.target;
 
-        if(target.matches('div') && gameBoard[target.textContent] == '') {
-            gameBoard[target.textContent] = ticTacToe.player[0].marker;
-            target.textContent = ticTacToe.player[0].marker;
+        if (target.matches('div') && gameBoard[target.textContent] == '') {
+            gameBoard[target.textContent] = marker;
+            target.textContent = marker;
             target.style.color = 'black';
 
+            if (ticTacToe.player[1].type == 'ai') {
+                ticTacToe.nextMove(gameBoard);
+            } else if (ticTacToe.player[1].type == 'human') {
+                (marker == ticTacToe.player[0].marker) ? marker = ticTacToe.player[1].marker : marker = ticTacToe.player[0].marker;
+            }
 
             let result = ticTacToe.findWinner(gameBoard);
             ticTacToe.showResult(result);
-            //ai.nextTurn(gameBoard);
+            console.log(marker);
         }
     }
+
+    //// reveal ////
+    return {setMarker};
 })();
 
 
-
-// Use a factory function to create player 1 and 2 objects
-const players = function(user, marker) {
+  /////////////////////////////////////////////////////////////
+ // Use a factory function to create player 1 and 2 objects //
+/////////////////////////////////////////////////////////////
+const players = function(user, marker, type) {
     return {
         user,
-        marker
+        marker,
+        type
     };
 };
 
 
-
-// Use a module to control the AI
+  ////////////////////////////////////
+ // Use a module to control the AI //
+////////////////////////////////////
 const ai = (function() {
      
-    // Use the minimax algorithm to find the optimal move. Start by creating a function that selects the optimal move
+    //// Use the minimax algorithm to find the optimal move. Start by creating a function that selects the optimal move ////
      function bestMove(board) {
         let bestScore = -Infinity;
         let move;
+        let result = ticTacToe.findWinner(board);
 
         for (let i = 0; i < 9; i++) {
             // Check to see if a board space is open and call minimax to find the best score
@@ -88,17 +98,18 @@ const ai = (function() {
                     bestScore = score;
                     move = i;
                 };
-            };
+            } else {
+                ticTacToe.showResult(result);
+            }
         };
         // Set ai marker
         let boardSpace = document.querySelector(`.square${move}`)
-
         board[move] = ticTacToe.player[1].marker;
         boardSpace.textContent = ticTacToe.player[1].marker;
         boardSpace.style.color = 'black';
     }
 
-    // Base scoring off whether P1 selects X or O. Since the ai is maximizing, it will always have the positive score
+    //// Base scoring off whether P1 selects X or O. Since the ai is maximizing, it will always have the positive score ////
     let scores;
 
     function setScores() {
@@ -109,7 +120,7 @@ const ai = (function() {
         }
     }
     
-    // Create minimax function
+    //// Create minimax function ////
     function minimax(boardPos, depth, isMaximizing) {
         setScores();
 
@@ -147,8 +158,9 @@ const ai = (function() {
         }
     }
 
-    // Use a random move generator to create an easy OR different difficulties
+    //// Use a random move generator to create an easy mode OR to introduce chance into different difficulties ////
     function nextTurn(board) {
+        let result = ticTacToe.findWinner(board);
         let available = [];
 
         // use a for loop to generate the available spaces 
@@ -166,19 +178,22 @@ const ai = (function() {
             board[available[rando]] = ticTacToe.player[1].marker;
             boardSpace.textContent = ticTacToe.player[1].marker;
             boardSpace.style.color = 'black';
+        } else {
+            ticTacToe.showResult(result);
         }
     }; 
 
-    // reveal
+    //// reveal ////
     return {bestMove, nextTurn}
 })();
 
 
-
-// Use another module to control the game
+  ////////////////////////////////////////////
+ // Use another module to control the game //
+////////////////////////////////////////////
 const ticTacToe = (function() {
 
-    // create an array containing winning combinations
+    //// create an array containing winning combinations ////
     const ticTacToe = [
         [0, 1, 2],
         [3, 4, 5],
@@ -190,39 +205,134 @@ const ticTacToe = (function() {
         [2, 4, 6]
     ];
 
-    // cache dom
+    //// cache dom ////
     let board = document.querySelector('.gameBoard');
-    let buttons = document.querySelector('.buttons');
+    let modeSelect = document.querySelector('.modeSelect');
+    let playerVsPlayer = document.querySelector('.pvp');
+    let playerVsComputer = document.querySelector('.pvc');
+    let difficultySelect = document.querySelector('.difficultySelect')
+    let easy = document.querySelector('.easy')
+    let medium = document.querySelector('.medium')
+    let hard = document.querySelector('.hard')
+    let impossible = document.querySelector('.impossible')
+    let markerSelect = document.querySelector('.markerSelect');
     let xButton = document.querySelector('.xButton');
     let oButton = document.querySelector('.oButton');
     let results = document.querySelector('.results');
 
-    // bind event listener to buttons
+    //// bind event listener to buttons ////
+    playerVsComputer.addEventListener('click', _playerVsAi);
+    playerVsPlayer.addEventListener('click', _playerVsP2);
+    easy.addEventListener('click', _easyMode);
+    medium.addEventListener('click', _mediumMode);
+    hard.addEventListener('click', _hardMode);
+    impossible.addEventListener('click', _impossibleMode);
     xButton.addEventListener('click', _symbolXSelect);
     oButton.addEventListener('click', _symbolOSelect);
 
-    // Depending on which button is selected, assign player 1 and 2 to a player array
+
+    //// Set the gamemode depending on whether Player vs Player or Player vs Computer is Selected ////
+    let player2;
+
+    function _playerVsAi() {
+        difficultySelect.style.display = 'block';
+        modeSelect.style.display = 'none';
+
+        player2 = 'ai';
+    }
+
+    function _playerVsP2() {
+        markerSelect.style.display = 'block';
+        modeSelect.style.display = 'none';
+
+        player2 = 'human';
+    }
+
+    //// Set the difficulty if Player vs Computer ////
+    let difficulty;
+
+    function _easyMode() {
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'block';
+
+        difficulty = 'easy';
+    }
+
+    function _mediumMode() {
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'block';
+
+        difficulty = 'medium';
+    }
+
+    function _hardMode() {
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'block';
+
+        difficulty = 'hard';
+    }
+
+    function _impossibleMode() {
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'block';
+
+        difficulty = 'impossible';
+    }
+
+    //// Set the ai move based off the difficulty ////
+    function nextMove(board) {
+        let rando = Math.floor(Math.random()*10);
+
+        if (difficulty == 'easy') {
+            ai.nextTurn(board)
+        } else if (difficulty == 'medium') {
+            return (rando < 6) ? ai.nextTurn(board) : ai.bestMove(board);
+        } else if (difficulty == 'hard') {
+            return (rando < 7) ? ai.bestMove(board) : ai.nextTurn(board); 
+        } else if (difficulty == 'impossible') {
+            ai.bestMove(board)
+        }
+    }
+
+
+    //// Depending on which button is selected, assign player 1 and 2 to a player array ////
     let player = [];
 
     function _symbolXSelect() { 
-       buttons.style.display = 'none';
+       markerSelect.style.display = 'none';
        board.style["pointer-events"] = 'all';
 
-       // Create player object ad set to the turn of their next move
-       let p = [players("P1", "X", 1), players("P2", "O")];
+       // Create player object and set to the turn of their next move
+       let p;
+
+       if (player2 == 'human') {
+           p = [players("P1", "X", "human"), players("P2", "O", "human")];
+       } else if (player2 == 'ai') {
+           p = [players("P1", "X", "human"), players("P2", "O", "ai")];
+       }
+
        player.push(...p);
+       gameBoard.setMarker();
     };
 
     function _symbolOSelect() {
-        buttons.style.display = 'none';
+        markerSelect.style.display = 'none';
         board.style["pointer-events"] = 'all';
 
-        // Create player object ad set to the turn of their next move
-        let p = [players("P1", "O", 1), players("P2", "X")];
+        // Create player object and set to the turn of their next move
+        let p;
+        
+        if (player2 == 'human') {
+            p = [players("P1", "O", "human"), players("P2", "X", "human")];
+        } else if (player2 == 'ai') {
+            p = [players("P1", "O", "human"), players("P2", "X", "ai")];
+        }
+        
         player.push(...p);
+        gameBoard.setMarker();
     };
 
-    // Iterate through the winning combinations array and compare against the xoArray to find the winner
+    //// Iterate through the winning combinations array and compare against the xoArray to find the winner ////
     function findWinner(arr) {
         let winner;
 
@@ -245,7 +355,7 @@ const ticTacToe = (function() {
     };
 
 
-    // display results
+    //// display results ////
     function showResult(result) {
         if (result === player[0].marker) {
             results.textContent = "P1 Wins!";
@@ -256,6 +366,6 @@ const ticTacToe = (function() {
         };
     };
 
-    // reveal 
-    return {findWinner, showResult, player};
+    //// reveal ////
+    return {findWinner, showResult, nextMove, player};
 })();
