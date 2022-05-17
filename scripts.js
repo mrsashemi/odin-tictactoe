@@ -4,7 +4,7 @@
 const gameBoard = (function() {
 
     //// create an array to represent the 3x3 grid ////
-    const gameBoard = [
+    let gameBoard = [
         '', '', '',
         '', '', '',
         '', '', ''
@@ -16,7 +16,8 @@ const gameBoard = (function() {
     let modeSelect = document.querySelector('.modeSelect');
     let difficultySelect = document.querySelector('.difficultySelect')
     let markerSelect = document.querySelector('.markerSelect');
-    let reset = document.querySelector('.reset')
+    let results = document.querySelector('.results');
+    let reset = document.querySelector('.reset');
 
     //// render tictactoe square divs from array and append to gameboard container ////
     function _render() {
@@ -35,7 +36,8 @@ const gameBoard = (function() {
     
     //// bind event listener to container ////
     board.addEventListener('click', _addTicTacValue);
-    
+    reset.addEventListener('click', _resetGame);
+
     //// create a function to set the marker initially ////
     let marker;
 
@@ -84,7 +86,25 @@ const gameBoard = (function() {
         }
     }
 
-    //// reset the game ////
+    //// reset the gameBoard ////
+    function _resetGame() {
+        while (board.firstChild) {
+            board.removeChild(board.firstChild);
+        }
+
+        gameBoard = [
+            '', '', '',
+            '', '', '',
+            '', '', ''
+            ];
+
+        modeSelect.style.display = 'block';
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'none';
+        results.textContent = '';
+
+        _render();
+    }
 
     //// reveal ////
     return {setMarker};

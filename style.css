@@ -81,7 +81,7 @@ body {
 
 .results {
     position: relative;
-    top: 10vmin;
+    top: 15vmin;
     font-family: '8bit', 'Courier New', Courier, monospace;
     font-size: 3vmin;
     color: white;
@@ -90,7 +90,7 @@ body {
 .xButton,
 .oButton {
     position: relative;
-    top: 15vmin;
+    top: 20vmin;
     font-size: 3vmin;
     font-weight: bold;
     text-shadow: 0.15vmin 0.15vmin pink, -0.15vmin -0.15vmin maroon;
@@ -127,7 +127,7 @@ body {
 .impossible,
 .reset {
     position: relative;
-    top: 15vmin;
+    top: 20vmin;
     font-family: '8bit', 'Courier New', Courier, monospace;
     font-size: 3vmin;
     font-weight: bold;
@@ -151,7 +151,7 @@ body {
 button:active {
     box-shadow: none;
     position: relative;
-    top: 15.2vmin;
+    top: 20.2vmin;
 }
 
 .markerSelect {
@@ -163,6 +163,6 @@ button:active {
 }
 
 .reset {
-    position: absolute;
-    top: 75vmin
+    position: relative;
+    top: 20vmin
 }
