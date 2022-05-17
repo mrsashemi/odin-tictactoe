@@ -10,9 +10,13 @@ const gameBoard = (function() {
         '', '', ''
         ];
     
-    //// cache the dom and select the gameboard container ////
-    board = document.querySelector('.gameBoard');
-    
+    //// cache the dom ////
+    let board = document.querySelector('.gameBoard');
+    let gameResult = document.querySelector('.results')
+    let modeSelect = document.querySelector('.modeSelect');
+    let difficultySelect = document.querySelector('.difficultySelect')
+    let markerSelect = document.querySelector('.markerSelect');
+    let reset = document.querySelector('.reset')
 
     //// render tictactoe square divs from array and append to gameboard container ////
     function _render() {
@@ -21,7 +25,7 @@ const gameBoard = (function() {
         gameBoard.forEach(e => {
             const ticTacSquare = document.createElement('div');
             ticTacSquare.className = `ticTacSquare square${i}`;
-            this.board.appendChild(ticTacSquare);
+            board.appendChild(ticTacSquare);
             ticTacSquare.textContent = i;
             i++;
         });
@@ -42,23 +46,45 @@ const gameBoard = (function() {
     //// use event delegation to add X or O to tic tac toe grid ////
     function _addTicTacValue(e) {
         const target = e.target;
+        // check for winning result every move
+        let result;
 
         if (target.matches('div') && gameBoard[target.textContent] == '') {
             gameBoard[target.textContent] = marker;
             target.textContent = marker;
-            target.style.color = 'black';
+            board.removeEventListener('click', _addTicTacValue);
 
-            if (ticTacToe.player[1].type == 'ai') {
-                ticTacToe.nextMove(gameBoard);
-            } else if (ticTacToe.player[1].type == 'human') {
-                (marker == ticTacToe.player[0].marker) ? marker = ticTacToe.player[1].marker : marker = ticTacToe.player[0].marker;
+            if (marker == ticTacToe.player[0].marker) {
+                target.style.background = 'rgba(23, 153, 68, 0.25)';
+                target.style.color = 'rgba(233, 227, 162, 0.65)';
+                target.style['text-shadow'] = '0.15vmin 0.15vmin pink, -0.15vmin -0.15vmin maroon';
+            } else if (marker == ticTacToe.player[1].marker) {
+                target.style.background = 'rgba(167, 77, 77, 0.35)';
+                target.style.color = 'rgba(233, 227, 162, 0.65)';
+                target.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
             }
 
-            let result = ticTacToe.findWinner(gameBoard);
+            result = ticTacToe.findWinner(gameBoard);
             ticTacToe.showResult(result);
-            console.log(marker);
+
+            if (ticTacToe.player[1].type == 'ai' && gameResult.textContent == '') {
+                // add delay to ai move for style
+                setTimeout(() => {
+                    ticTacToe.nextMove(gameBoard);
+                    board.addEventListener('click', _addTicTacValue);
+                }, 500);
+
+            } else if (ticTacToe.player[1].type == 'human') {
+                (marker == ticTacToe.player[0].marker) ? marker = ticTacToe.player[1].marker : marker = ticTacToe.player[0].marker;
+                board.addEventListener('click', _addTicTacValue);
+            }
+
+            result = ticTacToe.findWinner(gameBoard);
+            ticTacToe.showResult(result);
         }
     }
+
+    //// reset the game ////
 
     //// reveal ////
     return {setMarker};
@@ -83,10 +109,10 @@ const players = function(user, marker, type) {
 const ai = (function() {
      
     //// Use the minimax algorithm to find the optimal move. Start by creating a function that selects the optimal move ////
-     function bestMove(board) {
+    function bestMove(board) {
         let bestScore = -Infinity;
         let move;
-        let result = ticTacToe.findWinner(board);
+        let result;
 
         for (let i = 0; i < 9; i++) {
             // Check to see if a board space is open and call minimax to find the best score
@@ -99,6 +125,7 @@ const ai = (function() {
                     move = i;
                 };
             } else {
+                result = ticTacToe.findWinner(board);
                 ticTacToe.showResult(result);
             }
         };
@@ -106,7 +133,11 @@ const ai = (function() {
         let boardSpace = document.querySelector(`.square${move}`)
         board[move] = ticTacToe.player[1].marker;
         boardSpace.textContent = ticTacToe.player[1].marker;
-        boardSpace.style.color = 'black';
+        boardSpace.style.background = 'rgba(167, 77, 77, 0.35)';
+        boardSpace.style.color = 'rgba(233, 227, 162, 0.65)';
+        boardSpace.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
+        result = ticTacToe.findWinner(board);
+        ticTacToe.showResult(result);
     }
 
     //// Base scoring off whether P1 selects X or O. Since the ai is maximizing, it will always have the positive score ////
@@ -160,7 +191,7 @@ const ai = (function() {
 
     //// Use a random move generator to create an easy mode OR to introduce chance into different difficulties ////
     function nextTurn(board) {
-        let result = ticTacToe.findWinner(board);
+        let result;
         let available = [];
 
         // use a for loop to generate the available spaces 
@@ -177,8 +208,11 @@ const ai = (function() {
         if (available.length > 0) {
             board[available[rando]] = ticTacToe.player[1].marker;
             boardSpace.textContent = ticTacToe.player[1].marker;
-            boardSpace.style.color = 'black';
+            boardSpace.style.background = 'rgba(167, 77, 77, 0.35)';
+            boardSpace.style.color = 'rgba(233, 227, 162, 0.65)';
+            boardSpace.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
         } else {
+            result = ticTacToe.findWinner(board);
             ticTacToe.showResult(result);
         }
     }; 
@@ -288,7 +322,7 @@ const ticTacToe = (function() {
         } else if (difficulty == 'medium') {
             return (rando < 6) ? ai.nextTurn(board) : ai.bestMove(board);
         } else if (difficulty == 'hard') {
-            return (rando < 7) ? ai.bestMove(board) : ai.nextTurn(board); 
+            return (rando < 8) ? ai.bestMove(board) : ai.nextTurn(board); 
         } else if (difficulty == 'impossible') {
             ai.bestMove(board)
         }
