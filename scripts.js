@@ -43,7 +43,7 @@ const gameBoard = (function() {
 
     //// use event delegation to add X or O to tic tac toe grid ////
     function _addTicTacValue(e) {
-        const target = e.target;
+        const target = e.target;                           
         // check for winning result every move
         let result;
 
