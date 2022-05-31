@@ -48,7 +48,38 @@ body {
     gap: 1vmin;
     align-content: center;
     border-radius: 5vmin;
-    box-shadow: 0vmin 0vmin 100vmin 100vmin rgba(0, 0, 0, 0.925);
+    box-shadow: 0vmin 0vmin 100vmin 100vmin rgba(33, 43, 32, 0.925);
+}
+
+.gameBoard:after {
+    content: '';
+    width: 35%;
+    height: 70%;
+    border-top: solid 0.75vmin rgb(255, 166, 0);
+    border-right: solid 0.75vmin rgb(255, 166, 0);
+    box-shadow: 
+    inset -1vmin 1vmin 0 rgb(148, 237, 147, 0.5),
+    inset -1.75vmin 1.75vmin 0 rgb(255, 166, 0, 0.5);
+    border-top-right-radius: 1vmin;
+    position: absolute;
+    left: 101%;
+    top: 45%;
+}
+
+.gameBoard:before {
+    content: '';
+    width: 25%;
+    height: 60%;
+    border-top: solid 0.75vmin rgb(255, 166, 0);
+    border-right: solid 0.75vmin rgb(255, 166, 0);
+    box-shadow: 
+    inset -1vmin 1vmin 0 rgb(148, 237, 147, 0.5),
+    inset -1.75vmin 1.75vmin 0 rgb(255, 166, 0, 0.5);
+    border-top-right-radius: 1vmin;
+    position: absolute;
+    left: 101%;
+    top: 55%;
+    z-index: 2;
 }
 
 .ticTacSquare {
@@ -56,7 +87,7 @@ body {
     position: relative;
     background: rgb(245, 245, 220, 0.5);
     border-radius: 1vmin;
-    box-shadow: 0vmin 0vmin 1vmin 2.5vmin rgba(0, 0, 0, 0.6), 0 .7vmin gray;
+    box-shadow: 0vmin 0vmin 1vmin 2.5vmin rgba(33, 43, 32, 0.6), 0 .7vmin gray;
     backdrop-filter: blur(5.7px);
     -webkit-backdrop-filter: blur(6.7px);
     height: 10vmin;
@@ -76,7 +107,7 @@ body {
     background: rgba(247, 247, 242, 0.1);
     backdrop-filter: blur(2px);
     cursor: pointer;
-    box-shadow: 0vmin 0vmin 1vmin 2.5vmin rgba(0, 0, 0, 0.6);
+    box-shadow: 0vmin 0vmin 1vmin 2.5vmin rgba(33, 43, 32, 0.6);
 }
 
 .results {
@@ -147,6 +178,31 @@ body {
     box-shadow: 0 .7vmin gray; 
     cursor: pointer;
 }
+
+.pvc {
+    z-index: 3;
+}
+
+.pvp {
+    z-index: 4;
+}
+
+.medium {
+    z-index: 5;
+}
+
+.hard {
+    z-index: 6;
+}
+
+.oButton {
+    z-index: 7;
+}
+
+.xButton {
+    z-index: 8;
+}
+
 
 button:active {
     box-shadow: none;

@@ -13,10 +13,6 @@ const gameBoard = (function() {
     //// cache the dom ////
     let board = document.querySelector('.gameBoard');
     let gameResult = document.querySelector('.results')
-    let modeSelect = document.querySelector('.modeSelect');
-    let difficultySelect = document.querySelector('.difficultySelect')
-    let markerSelect = document.querySelector('.markerSelect');
-    let results = document.querySelector('.results');
     let reset = document.querySelector('.reset');
 
     //// render tictactoe square divs from array and append to gameboard container ////
@@ -36,14 +32,14 @@ const gameBoard = (function() {
     
     //// bind event listener to container ////
     board.addEventListener('click', _addTicTacValue);
-    reset.addEventListener('click', _resetGame);
+    reset.addEventListener('click', _resetBoard);
 
     //// create a function to set the marker initially ////
     let marker;
 
     function setMarker() {
         marker = ticTacToe.player[0].marker;
-    }
+    };
 
     //// use event delegation to add X or O to tic tac toe grid ////
     function _addTicTacValue(e) {
@@ -64,7 +60,7 @@ const gameBoard = (function() {
                 target.style.background = 'rgba(167, 77, 77, 0.35)';
                 target.style.color = 'rgba(233, 227, 162, 0.65)';
                 target.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
-            }
+            };
 
             result = ticTacToe.findWinner(gameBoard);
             ticTacToe.showResult(result);
@@ -79,36 +75,34 @@ const gameBoard = (function() {
             } else if (ticTacToe.player[1].type == 'human') {
                 (marker == ticTacToe.player[0].marker) ? marker = ticTacToe.player[1].marker : marker = ticTacToe.player[0].marker;
                 board.addEventListener('click', _addTicTacValue);
-            }
+            };
 
             result = ticTacToe.findWinner(gameBoard);
             ticTacToe.showResult(result);
-        }
-    }
+        };
+    };
 
-    //// reset the gameBoard ////
-    function _resetGame() {
+    //// reset the gameBoard //// 
+    function _resetBoard(){
         while (board.firstChild) {
             board.removeChild(board.firstChild);
-        }
+        };
 
-        gameBoard = [
-            '', '', '',
-            '', '', '',
-            '', '', ''
-            ];
+        ticTacToe.resetGame();
 
-        modeSelect.style.display = 'block';
-        difficultySelect.style.display = 'none';
-        markerSelect.style.display = 'none';
-        board.style["pointer-events"] = 'none';
-        results.textContent = '';
+        gameBoard.splice(0, 9, '', '', '', '', '', '', '', '', '')
+        
+        marker = '';
 
         _render();
-    }
+
+        board.addEventListener('click', _addTicTacValue);
+
+        board.style["pointer-events"] = 'none';
+    };
 
     //// reveal ////
-    return {setMarker};
+    return {setMarker, gameBoard};
 })();
 
 
@@ -148,7 +142,7 @@ const ai = (function() {
             } else {
                 result = ticTacToe.findWinner(board);
                 ticTacToe.showResult(result);
-            }
+            };
         };
         // Set ai marker
         let boardSpace = document.querySelector(`.square${move}`)
@@ -159,7 +153,7 @@ const ai = (function() {
         boardSpace.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
         result = ticTacToe.findWinner(board);
         ticTacToe.showResult(result);
-    }
+    };
 
     //// Base scoring off whether P1 selects X or O. Since the ai is maximizing, it will always have the positive score ////
     let scores;
@@ -169,8 +163,8 @@ const ai = (function() {
             scores = {'X': -10, 'O': 10, 'tie': 0}
         } else {
             scores = {'X': 10, 'O': -10, 'tie': 0}
-        }
-    }
+        };
+    };
     
     //// Create minimax function ////
     function minimax(boardPos, depth, isMaximizing) {
@@ -180,7 +174,7 @@ const ai = (function() {
         let result = ticTacToe.findWinner(boardPos);
         if (result !== undefined) {
             return scores[result];
-        }
+        };
 
         // Check all possible spots for both maximizing and minimizing players
         if (isMaximizing) {
@@ -207,8 +201,8 @@ const ai = (function() {
                 };
             };
             return bestScore;
-        }
-    }
+        };
+    };
 
     //// Use a random move generator to create an easy mode OR to introduce chance into different difficulties ////
     function nextTurn(board) {
@@ -232,10 +226,12 @@ const ai = (function() {
             boardSpace.style.background = 'rgba(167, 77, 77, 0.35)';
             boardSpace.style.color = 'rgba(233, 227, 162, 0.65)';
             boardSpace.style['text-shadow'] = '-0.15vmin -0.15vmin black, 0.15vmin 0.15vmin white';
+            result = ticTacToe.findWinner(board);
+            ticTacToe.showResult(result);
         } else {
             result = ticTacToe.findWinner(board);
             ticTacToe.showResult(result);
-        }
+        };
     }; 
 
     //// reveal ////
@@ -265,11 +261,11 @@ const ticTacToe = (function() {
     let modeSelect = document.querySelector('.modeSelect');
     let playerVsPlayer = document.querySelector('.pvp');
     let playerVsComputer = document.querySelector('.pvc');
-    let difficultySelect = document.querySelector('.difficultySelect')
-    let easy = document.querySelector('.easy')
-    let medium = document.querySelector('.medium')
-    let hard = document.querySelector('.hard')
-    let impossible = document.querySelector('.impossible')
+    let difficultySelect = document.querySelector('.difficultySelect');
+    let easy = document.querySelector('.easy');
+    let medium = document.querySelector('.medium');
+    let hard = document.querySelector('.hard');
+    let impossible = document.querySelector('.impossible');
     let markerSelect = document.querySelector('.markerSelect');
     let xButton = document.querySelector('.xButton');
     let oButton = document.querySelector('.oButton');
@@ -294,14 +290,14 @@ const ticTacToe = (function() {
         modeSelect.style.display = 'none';
 
         player2 = 'ai';
-    }
+    };
 
     function _playerVsP2() {
         markerSelect.style.display = 'block';
         modeSelect.style.display = 'none';
 
         player2 = 'human';
-    }
+    };
 
     //// Set the difficulty if Player vs Computer ////
     let difficulty;
@@ -311,28 +307,28 @@ const ticTacToe = (function() {
         markerSelect.style.display = 'block';
 
         difficulty = 'easy';
-    }
+    };
 
     function _mediumMode() {
         difficultySelect.style.display = 'none';
         markerSelect.style.display = 'block';
 
         difficulty = 'medium';
-    }
+    };
 
     function _hardMode() {
         difficultySelect.style.display = 'none';
         markerSelect.style.display = 'block';
 
         difficulty = 'hard';
-    }
+    };
 
     function _impossibleMode() {
         difficultySelect.style.display = 'none';
         markerSelect.style.display = 'block';
 
         difficulty = 'impossible';
-    }
+    };
 
     //// Set the ai move based off the difficulty ////
     function nextMove(board) {
@@ -346,8 +342,8 @@ const ticTacToe = (function() {
             return (rando < 8) ? ai.bestMove(board) : ai.nextTurn(board); 
         } else if (difficulty == 'impossible') {
             ai.bestMove(board)
-        }
-    }
+        };
+    };
 
 
     //// Depending on which button is selected, assign player 1 and 2 to a player array ////
@@ -364,7 +360,7 @@ const ticTacToe = (function() {
            p = [players("P1", "X", "human"), players("P2", "O", "human")];
        } else if (player2 == 'ai') {
            p = [players("P1", "X", "human"), players("P2", "O", "ai")];
-       }
+       };
 
        player.push(...p);
        gameBoard.setMarker();
@@ -394,7 +390,7 @@ const ticTacToe = (function() {
         // check to see if all spaces are filled for a draw
         let drawCheck = arr.every(e => {
             return (e == 'X' || e == 'O');
-        })
+        });
 
         ticTacToe.forEach(win => {
             if (arr[win[0]] == player[0].marker && arr[win[1]] == player[0].marker && arr[win[2]] == player[0].marker) {
@@ -403,7 +399,7 @@ const ticTacToe = (function() {
                 winner = player[1].marker;
             } else if (drawCheck && winner != player[0].marker && winner != player[1].marker) {
                 winner = 'tie';
-            }
+            };
         });
 
         return winner;
@@ -421,6 +417,15 @@ const ticTacToe = (function() {
         };
     };
 
+    //// reset the game //// 
+    function resetGame() {
+        player.splice(0,2);
+        modeSelect.style.display = 'block';
+        difficultySelect.style.display = 'none';
+        markerSelect.style.display = 'none';
+        results.textContent = '';
+    };
+
     //// reveal ////
-    return {findWinner, showResult, nextMove, player};
+    return {findWinner, showResult, nextMove, resetGame, player};
 })();
